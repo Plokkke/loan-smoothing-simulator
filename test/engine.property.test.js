@@ -81,10 +81,6 @@ test('the minimum target is exact to the cent', () => {
   }), { numRuns: 60 });
 });
 
-test('the actuarial rate is never below the nominal rate', () => {
-  fc.assert(fc.property(rate, (r) => assert.ok(E.actuarialRate(r) >= r - 1e-12)));
-});
-
 test('the IRR of an annuity is its rate', () => {
   fc.assert(fc.property(simpleLoan, (loan) => {
     const { months } = loan.segments[0];

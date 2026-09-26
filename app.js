@@ -15,9 +15,13 @@
     id, name, enabled: true, advanced: false, capital, months, payment, rate: 0, startOffset: 0, segments: [{ months, payment }], closing: 'continue',
   });
   const DEFAULT_STATE = {
-    loans: [simpleLoan('A', 'Prêt immobilier', 130000, 119, 1300), simpleLoan('B', 'Prêt travaux', 38000, 58, 700)],
-    nextId: 3,
-    line: { rate: 5, target: 1500 },
+    loans: [
+      simpleLoan('A', 'Résidence principale', 183237.32, 164, 1237.24),
+      simpleLoan('B', 'Investissement locatif', 86499.17, 143, 678.36),
+      simpleLoan('C', 'Automobile', 13366.5, 49, 293.14),
+    ],
+    nextId: 4,
+    line: { rate: 4.75, target: 1592 },
   };
 
   // v1 stored { capital, months, payment, enabled } per loan and { rate, target, start } for the line.
@@ -145,10 +149,13 @@
     t.innerHTML = `<thead><tr>${HEAD.map((h, i) => `<th class="${i >= 2 && i <= 5 ? 'num' : ''}">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
     const body = t.querySelector('tbody');
     state.loans.forEach((loan) => body.appendChild(loanRow(loan)));
-    const valid = state.loans.filter((l) => l.valid).map(E.fromEuros);
-    const smoothed = valid.filter((l) => l.enabled);
+    t.appendChild(document.createElement('tfoot'));
+  }
+  // Rebuilt on every update: cell edits do not re-render the rows, to keep the focus.
+  function renderTotals(loans) {
+    const smoothed = loans.filter((l) => l.enabled);
     const sumCapital = (list) => list.reduce((s, l) => s + l.capital, 0);
-    t.insertAdjacentHTML('beforeend', `<tfoot><tr><td></td><td>Total</td>${totalCell(sumCapital(valid), sumCapital(smoothed), 'capital restant dû')}<td></td>${totalCell(peakPayment(valid), peakPayment(smoothed), 'mensualité max')}<td colspan="3"></td></tr></tfoot>`);
+    $('#table-loans tfoot').innerHTML = `<tr><td></td><td>Total</td>${totalCell(sumCapital(loans), sumCapital(smoothed), 'capital restant dû')}<td></td>${totalCell(peakPayment(loans), peakPayment(smoothed), 'mensualité max')}<td colspan="3"></td></tr>`;
   }
 
   $('#add-loan').addEventListener('click', () => {
@@ -167,10 +174,10 @@
     const loans = valid.map(E.fromEuros);
     const base = E.baselineSchedule(loans);
     const sim = E.simulateSmoothing(loans, { rate, target });
+    renderTotals(loans);
     R.suggestions(loans, rate, target, (cents) => { state.line.target = cents / 100; $('#line-target').value = state.line.target; update(); });
     R.status(sim, loans, rate);
     R.keyPoints(sim, base);
-    R.rates(E.rateComparison(loans, sim), sim, valid);
     R.afterTable(sim);
     R.charts(sim, base);
     R.monthsTable(sim);

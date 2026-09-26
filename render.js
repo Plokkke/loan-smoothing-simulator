@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const E = root.Engine;
-  const { eur, eur2, pct2, months, years, monthLabel } = root.Fmt;
+  const { eur, eur2, pct2, years, monthLabel } = root.Fmt;
   const $ = (sel) => document.querySelector(sel);
   const ceilEuro = (cents) => Math.ceil(cents / 100) * 100;
 
@@ -76,8 +76,8 @@
     $('#keypoints').innerHTML = [
       tile('Durée totale', done ? `${sim.duration} mois` : `${base.duration} mois`, years(done ? sim.duration : base.duration)),
       tile('Durée ajoutée', done ? `+${extra} mois` : '—', done ? years(extra) : ''),
-      tile('Taux du plan', done && eq.rate !== null ? pct2(eq.rate) : '—', done && eq.rate !== null ? `actuariel ${pct2(E.actuarialRate(eq.rate))}` : 'taux implicite'),
-      tile('Intérêts', done ? eur(sim.lineInterest) : '—', `modulation à ${sim.rate} %`),
+      tile('Taux moyen', done && eq.rate !== null ? pct2(eq.rate) : '—', 'taux implicite du plan'),
+      tile('Intérêts', done ? eur(sim.lineInterest) : '—', `modulation à ${String(sim.rate).replace('.', ',')} %`),
       tile('Décaissement', done ? eur(eq.disbursed) : '—', done ? `tiré sur ${eq.drawMonths} mois` : ''),
     ].join('');
   }
@@ -96,23 +96,6 @@
     root.Charts.draw($('#chart-draws'), [
       { label: 'Tirage du mois', values: sim.months.map((m) => Math.max(-m.lineFlow, 0)), color: 'var(--after)', bars: true },
     ], n, eur, { floor: 10_000, height: 130 });
-  }
-
-  // Nominal vs actuarial rates of each loan, the current situation, the line and the smoothed plan.
-  function rates(rows, sim, loans) {
-    const done = sim.feasible && sim.everDrawn;
-    const nameOf = (id) => loans.find((l) => l.id === id)?.name ?? id;
-    const LABEL = { current: 'Situation actuelle', line: 'Modulation', plan: 'Plan lissé' };
-    const shown = rows.filter((r) => done || (r.kind !== 'line' && r.kind !== 'plan'));
-    const rate = (x) => (x === null ? '—' : pct2(x));
-    table($('#table-rates'), [['Taux'], ['Nominal', 'num'], ['Actuariel', 'num'], ['Intérêts', 'num'], ['Durée', 'num']], shown.map((r) => [
-      r.kind === 'loan' ? nameOf(r.id) : `<b>${LABEL[r.kind]}</b>`,
-      rate(r.nominal), rate(r.actuarial), eur(r.interest), r.months === null ? '—' : months(r.months),
-    ]));
-    const current = rows.find((r) => r.kind === 'current');
-    const plan = rows.find((r) => r.kind === 'plan');
-    const delta = done && current.actuarial !== null && plan.actuarial !== null ? plan.actuarial - current.actuarial : null;
-    $('#rates-delta').textContent = delta === null ? '' : `Plan lissé ${delta >= 0 ? '+' : '−'}${pct2(Math.abs(delta)).replace(' %', ' pt')} actuariel`;
   }
 
   const MODE_LABEL = { draw: 'Tirage', repay: 'Remboursement', none: 'Neutre' };
@@ -146,5 +129,5 @@
     table($('#table-months'), head, rows);
   }
 
-  root.Render = { status, suggestions, keyPoints, rates, charts, afterTable, monthsTable };
+  root.Render = { status, suggestions, keyPoints, charts, afterTable, monthsTable };
 })(window);

@@ -6,7 +6,7 @@
 **[Live demo →](https://plokkke.github.io/loan-smoothing-simulator/)** (UI in French)
 
 A borrower juggling several loans pays a monthly total that jumps every time a loan starts or ends
-(e.g. 2 000 € for five years, then 1 300 €). This simulator flattens that curve: given the running
+(e.g. 2 209 € for four years, then 1 916 €, then 1 237 €). This simulator flattens that curve: given the running
 loans and a **target monthly payment**, it computes the revolving credit line that absorbs the
 difference — drawing on it while the loans cost more than the target, repaying it once they cost
 less — and checks that the whole structure actually gets repaid.
@@ -24,9 +24,8 @@ less — and checks that the whole structure actually gets repaid.
   infeasible plans (target below the line's interest, or not repaid within 50 years).
 - **Solvers**: minimum repayable target, target keeping the original duration, target for any
   given duration — all by monotone bisection on the simulation.
-- **Rate comparison**: each loan, the current situation, the credit line and the smoothed plan,
-  under both the nominal and the actuarial (TAEG) convention. Aggregates are expressed as the IRR
-  of their cash flows: what a lender would actually underwrite.
+- **Effective rate** of the whole smoothed plan, computed as the IRR of its cash flows: what a
+  lender would actually underwrite.
 - **Advanced loans**: explicit rate, deferred start, stepped schedules, balloon or continued
   closing payment.
 - Named scenarios, JSON export/import, `localStorage` persistence. Zero runtime dependencies, no
@@ -56,7 +55,10 @@ npm test
 
 ## Model
 
-- Monthly rate = annual rate / 12 (proportional rate).
+- One rate convention everywhere: annual rates are nominal (French *taux débiteur*), applied
+  proportionally, monthly rate = annual rate / 12. This holds for the loans, the credit line and
+  the plan's effective rate, so they compare directly. A TAEG, which compounds monthly and
+  includes fees and insurance, is a different quantity and should not be entered as a rate.
 - Each month the borrower pays the target `T`. The credit line receives `T − Σ loan payments`:
   negative means a draw, capitalised with interest; positive means a repayment (the line's capital
   only decreases once the payment exceeds the month's interest).
@@ -77,13 +79,6 @@ Floating-point euros drift silently over hundreds of months, so the engine separ
   producing a phantom month.
 - **Rates, solvers and IRR stay floating point**: they are numerical methods, never booked. The
   target solvers bisect directly on integer cents, so their results are exact.
-
-## Rates: nominal vs actuarial
-
-Loan offers quote a **nominal** rate: the monthly rate × 12. The **actuarial** rate compounds it,
-`(1 + monthly)^12 − 1`, which is the convention of the French/EU TAEG (APRC). 5 % nominal is
-5.12 % actuarial. The comparison table shows both; the TAEG proper would also include fees and
-insurance, which are out of scope here.
 
 ## Layout
 

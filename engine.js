@@ -13,9 +13,8 @@
   // Half-up to the cent. Every amount rounded here is non-negative.
   const roundCents = (x) => Math.round(x);
   const toCents = (euros) => Math.round(euros * 100);
+  // Annual rates are nominal (taux débiteur), applied proportionally: monthly = annual / 12.
   const monthlyRate = (annualPct) => annualPct / 100 / 12;
-  // Nominal (proportional) annual rate -> actuarial annual rate, the TAEG convention.
-  const actuarialRate = (annualPct) => (Math.pow(1 + monthlyRate(annualPct), 12) - 1) * 100;
   const sum = (arr, pick) => arr.reduce((s, x) => s + pick(x), 0);
 
   function paymentFor(capital, annualPct, months) {
@@ -260,23 +259,6 @@
     };
   }
 
-  // Rates of each smoothed loan, of the current situation, of the credit line and of the smoothed
-  // plan, under both conventions: nominal (monthly rate × 12) and actuarial (TAEG basis, no fees).
-  function rateComparison(loans, sim) {
-    const smoothedLoans = loans.filter((l) => l.enabled !== false);
-    const base = sim.smoothed;
-    const row = (kind, nominal, interest, months, id = null) => ({
-      kind, id, nominal, actuarial: nominal === null ? null : actuarialRate(nominal), interest, months,
-    });
-    const currentRate = impliedRate(sum(smoothedLoans, (l) => l.capital), base.months.map((m) => m.total));
-    return [
-      ...base.perLoan.map((s, i) => row('loan', smoothedLoans[i].rate, s.interest, s.duration, s.id)),
-      row('current', currentRate, base.totalInterest, base.duration),
-      row('line', sim.rate, sim.lineInterest, null),
-      row('plan', sim.equivalent.rate, base.totalInterest + sim.lineInterest, sim.duration),
-    ];
-  }
-
   // Monotone bisection on the target payment (integer cents): higher target => shorter plan.
   // Returns the smallest target satisfying the predicate, exact to the cent.
   function bisectTarget(loans, rate, predicate) {
@@ -301,7 +283,6 @@
     MAX_MONTHS,
     toCents,
     fromEuros,
-    actuarialRate,
     paymentFor,
     monthsFor,
     rateFor,
@@ -309,7 +290,6 @@
     schedule,
     baselineSchedule,
     simulateSmoothing,
-    rateComparison,
     findMinTarget,
     findTargetForDuration,
     findIsoDurationTarget,

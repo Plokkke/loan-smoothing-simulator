@@ -62,7 +62,7 @@ section.block, .block { display: grid; gap: 12px; }
 .block-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 
 /* editable loans table */
-table.editable input[type="number"] { width: 120px; }
+table.editable input[type="number"] { width: 140px; }
 table.editable input[type="text"] { min-width: 140px; font-weight: 500; }
 table.editable td { vertical-align: middle; }
 table.editable tr.off td { opacity: 0.55; }

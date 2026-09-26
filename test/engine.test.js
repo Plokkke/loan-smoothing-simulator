@@ -10,8 +10,6 @@ const simple = (id, capital, months, payment, extra = {}) => ({
 // annuity formulas are inverses
 const p = E.paymentFor(200000, 3, 240);
 near(p, 1109.20, 0.01);
-near(E.actuarialRate(3), 3.0416, 1e-4);
-assert.equal(E.actuarialRate(0), 0);
 near(E.monthsFor(200000, 3, p), 240, 1e-6);
 near(E.rateFor(200000, 240, p), 3, 1e-6);
 assert.equal(E.rateFor(200000, 240, 500), null);
@@ -120,14 +118,5 @@ assert.ok(eq.rate > 2.7 && eq.rate < 5, `unexpected implied rate ${eq.rate}`);
 assert.equal(eq.disbursed, c(500 * 58) + (E.schedule(B).lastPayment - c(700)));
 assert.equal(eq.drawMonths, 58);
 near(E.paymentFor(eq.capital, eq.rate, eq.months) * eq.months, sim.totalPaid, sim.totalPaid * 0.01);
-
-// rate comparison: every smoothed loan, the current situation, the line and the plan
-const rates = E.rateComparison(loans, sim);
-assert.deepEqual(rates.map((x) => x.kind), ['loan', 'loan', 'current', 'line', 'plan']);
-rates.forEach((x) => assert.ok(x.actuarial > x.nominal, `${x.kind}: actuarial must exceed nominal`));
-const current = rates.find((x) => x.kind === 'current');
-assert.ok(current.nominal > 2.7 && current.nominal < 3.6, `unexpected current rate ${current.nominal}`);
-assert.equal(rates.find((x) => x.kind === 'plan').nominal, eq.rate);
-assert.equal(rates.find((x) => x.kind === 'plan').interest, sim.totalInterest);
 
 console.log('all tests passed');
