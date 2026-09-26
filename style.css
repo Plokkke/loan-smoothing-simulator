@@ -74,8 +74,6 @@ table.editable .unit span { position: absolute; right: 8px; top: 50%; transform:
 table.editable .unit input { padding-right: 34px; }
 
 /* objective */
-.objective-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: start; }
-.objective-row .field { min-width: 160px; }
 
 .switch { position: relative; display: inline-block; vertical-align: middle; flex: none; width: 30px; height: 18px; cursor: pointer; }
 .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
@@ -105,12 +103,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 button.ghost { border-color: transparent; color: var(--ink-2); padding: 2px 6px; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { display: grid; text-align: center; font-size: 12px; line-height: 1.3; padding: 4px 10px; border-radius: 6px; color: var(--ink-2); }
-.chip b { font-family: var(--mono); font-weight: 500; font-size: 13px; color: var(--ink); }
-.chip[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.chip.infeasible b { color: var(--bad); }
-.presets { display: grid; gap: 10px; }
-.preset-group { display: grid; gap: 4px; }
 
 /* scenarios toolbar */
 .scenarios { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-left: auto; }
@@ -122,7 +114,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .status::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--bad); vertical-align: middle; }
 tfoot td { border-top: 1px solid var(--ink-3); border-bottom: none; }
 
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .kpi { background: var(--surface); padding: 10px 12px; display: grid; gap: 2px; }
 .kpi .before { color: var(--ink-3); font-size: 12px; }
 .kpi .after { font-size: 18px; font-weight: 500; }
@@ -156,10 +148,6 @@ th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line
 th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); font-weight: 500; }
 td.num, th.num { text-align: right; }
 tbody tr:last-child td { border-bottom: none; }
-.tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 3px; background: var(--surface-2); color: var(--ink-2); }
-.tag.off { color: var(--after); }
-.tag.draw { background: color-mix(in srgb, var(--after) 18%, transparent); color: var(--after); }
-.tag.repay { background: color-mix(in srgb, var(--before) 18%, transparent); color: var(--before); }
 details summary { cursor: pointer; color: var(--ink-2); }
 .two { display: grid; gap: 20px; }
 @media (prefers-reduced-motion: reduce) { .tooltip { transition: none; } }
@@ -183,3 +171,51 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .dlg-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .dlg-actions .spacer { flex: 1; }
 button:disabled { opacity: 0.4; cursor: default; }
+
+/* objective (30 %) beside key points and plan (70 %) */
+.split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); gap: 20px; }
+.stack { display: grid; gap: 20px; align-content: start; min-width: 0; }
+@media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.objective { grid-template-rows: auto auto 1fr; }
+.objective-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* vertical target scale: max at the top; --at is a 0..1 position from the top.
+   Columns: bubble | slider | duration pills | reduction pills. Pills stack like cards where they overlap. */
+.scale { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; }
+.scale-track { position: relative; min-height: 300px; --thumb: 16px; --bubble: 72px; }
+.scale-track [style*="--at"] { position: absolute; top: calc(var(--at) * (100% - var(--thumb)) + var(--thumb) / 2); }
+#target-range { position: absolute; top: 0; bottom: 0; left: var(--bubble); width: var(--thumb); height: 100%; margin: 0;
+  writing-mode: vertical-lr; cursor: pointer; appearance: none; -webkit-appearance: none;
+  background: linear-gradient(var(--line), var(--line)) center / 4px 100% no-repeat; border-radius: 2px; }
+/* Neutral rail, no filled part: only the thumb carries the accent colour. */
+#target-range::-webkit-slider-runnable-track { background: transparent; }
+#target-range::-moz-range-track, #target-range::-moz-range-progress { background: transparent; }
+#target-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb); height: var(--thumb); border-radius: 50%;
+  background: var(--accent); border: 2px solid var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .3); }
+#target-range::-moz-range-thumb { width: var(--thumb); height: var(--thumb); border-radius: 50%; box-sizing: border-box;
+  background: var(--accent); border: 2px solid var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .3); }
+#target-range:focus-visible { outline: none; }
+#target-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+#target-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.scale-bubble { left: 0; width: calc(var(--bubble) - 8px); transform: translateY(-50%); text-align: center; background: var(--accent); color: #fff; font-size: 12px; font-weight: 500; padding: 1px 4px; border-radius: 4px; white-space: nowrap; }
+.scale-bubble::after { content: ''; position: absolute; top: 50%; right: -4px; transform: translateY(-50%); border: 4px solid transparent; border-right: 0; border-left-color: var(--accent); }
+.scale-marks { position: absolute; top: 0; bottom: 0; left: calc(var(--bubble) + var(--thumb) + 10px); right: 0; }
+.mark { left: 0; height: 20px; padding: 0 7px; border-radius: 10px; border: 1px solid var(--surface); transform: translateY(-50%); cursor: pointer;
+  color: #fff; font: 500 11px/18px var(--mono); white-space: nowrap; transition: transform .12s, box-shadow .12s; }
+.mark.duration { background: var(--credit); }
+.mark.reduction { background: var(--after); left: 62px; }
+.mark[aria-pressed="true"] { z-index: 1; box-shadow: 0 0 0 2px var(--accent); }
+.mark:hover, .mark:focus-visible { z-index: 2; transform: translate(2px, -50%); box-shadow: 0 3px 8px rgb(0 0 0 / .25); }
+.mark[aria-pressed="true"]:hover { box-shadow: 0 0 0 2px var(--accent), 0 3px 8px rgb(0 0 0 / .25); }
+.mark .tip { position: absolute; top: 24px; left: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .12s;
+  white-space: nowrap; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font: 12px/1.4 var(--font); text-align: left; box-shadow: 0 4px 12px rgb(0 0 0 / .12); }
+.mark.reduction .tip { left: auto; right: 0; }
+.mark .tip b { color: var(--ink); }
+.mark:hover .tip, .mark:focus-visible .tip { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .mark, .mark .tip { transition: none; } }
+
+/* plan table: balance trend between start and end */
+td.trend { text-align: center; padding-inline: 2px; font-size: 15px; }
+td.trend .draw { color: var(--after); }
+td.trend .repay { color: var(--before); }

@@ -35,18 +35,25 @@
     <div class="table-wrap"><table id="table-loans" class="editable"></table></div>
   </section>
 
+  <div class="split">
   <section class="card objective">
     <h2>Objectif</h2>
     <div class="objective-row">
       <div class="field"><label for="line-rate">Taux de la modulation</label><div class="unit"><input id="line-rate" type="number" step="0.05" min="0" value="5"><span>%</span></div></div>
       <div class="field"><label for="line-target">Mensualité cible</label><div class="unit"><input id="line-target" type="number" step="10" min="0" value="1500"><span>€</span></div></div>
     </div>
-    <div class="presets">
-      <div class="preset-group"><span class="eyebrow">Durée du plan</span><div id="chips-duration" class="chips"></div></div>
-      <div class="preset-group"><span class="eyebrow">Baisse de la mensualité max</span><div id="chips-reduction" class="chips"></div></div>
+    <div id="target-scale" class="scale">
+      <div id="scale-max" class="small muted num"></div>
+      <div class="scale-track">
+        <output id="target-bubble" class="scale-bubble num"></output>
+        <input id="target-range" type="range" min="0" step="1" aria-label="Mensualité cible">
+        <div id="target-marks" class="scale-marks"></div>
+      </div>
+      <div id="scale-min" class="small muted num"></div>
     </div>
   </section>
 
+  <div class="stack">
   <section class="card">
     <div class="card-head"><h2>Points clés</h2><div id="status" class="status"></div></div>
     <div id="keypoints" class="kpis"></div>
@@ -56,6 +63,8 @@
     <h2>Plan lissé</h2>
     <div class="table-wrap"><table id="table-after"></table></div>
   </section>
+  </div>
+  </div>
 
   <section class="card">
     <div class="card-head">
@@ -68,7 +77,7 @@
   <section class="card">
     <div class="card-head">
       <h2>Encours de la modulation</h2>
-      <div class="legend"><span style="--c: var(--credit)">Capital restant dû de la modulation</span><span class="bar" style="--c: var(--after)">Tirage du mois</span></div>
+      <div class="legend"><span style="--c: var(--credit)">Capital restant dû</span><span class="bar" style="--c: var(--after)">Tirage du mois</span></div>
     </div>
     <div id="chart-balance" class="chart"></div>
     <div id="chart-draws" class="chart"></div>
@@ -119,9 +128,11 @@
 </dialog>
 
 <script src="engine.js"></script>
+<script src="config.js"></script>
 <script src="format.js"></script>
 <script src="charts.js"></script>
 <script src="render.js"></script>
+<script src="target-scale.js"></script>
 <script src="loan-dialog.js"></script>
 <script src="presets.js"></script>
 <script src="app.js"></script>

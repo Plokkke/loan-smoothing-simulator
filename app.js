@@ -175,7 +175,7 @@
     const base = E.baselineSchedule(loans);
     const sim = E.simulateSmoothing(loans, { rate, target });
     renderTotals(loans);
-    R.suggestions(loans, rate, target, (cents) => { state.line.target = cents / 100; $('#line-target').value = state.line.target; update(); });
+    root.TargetScale.update(loans, rate, target);
     R.status(sim, loans, rate);
     R.keyPoints(sim, base);
     R.afterTable(sim);
@@ -199,6 +199,7 @@
     update();
   }
   $('#reset').addEventListener('click', () => setState(DEFAULT_STATE));
+  root.TargetScale.init((cents) => { state.line.target = cents / 100; $('#line-target').value = state.line.target; update(); });
   root.Presets.init({ getState: serialize, setState, persist: PERSIST });
 
   syncLineInputs();

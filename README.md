@@ -24,6 +24,11 @@ less — and checks that the whole structure actually gets repaid.
   infeasible plans (target below the line's interest, or not repaid within 50 years).
 - **Solvers**: minimum repayable target, target keeping the original duration, target for any
   given duration — all by monotone bisection on the simulation.
+- **Target scale**: a vertical slider over the range allowed by the smoothing policy, with
+  shortcuts (+12 … +84 months, −10/−20/−30 % of the highest payment) as marks. It is graduated in
+  plan duration rather than euros — piecewise-linear through the solved duration targets — so the
+  useful range gets the room and the duration marks are evenly spaced. The policy (at most 7 extra
+  years, at most 20 years in total) lives in `config.js`.
 - **Effective rate** of the whole smoothed plan, computed as the IRR of its cash flows: what a
   lender would actually underwrite.
 - **Advanced loans**: explicit rate, deferred start, stepped schedules, balloon or continued
@@ -85,7 +90,9 @@ Floating-point euros drift silently over hundreds of months, so the engine separ
 | File | Role |
 | --- | --- |
 | `engine.js` | Pure computation: schedules, simulation, solvers |
+| `config.js` | Smoothing policy: shortcut steps and duration limits |
 | `format.js`, `charts.js`, `render.js` | Formatting, SVG charts, results rendering |
+| `target-scale.js` | Target slider and policy shortcuts |
 | `loan-dialog.js` | Advanced loan editor |
 | `presets.js` | Named scenarios, JSON export/import |
 | `app.js` | State, loans table, persistence |
