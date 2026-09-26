@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lissage de mensualités</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <h1>Lissage de mensualités</h1>
+  <p>Crédits en cours, mensualité cible, taux de la modulation. Le simulateur calcule la modulation qui absorbe l'écart et vérifie qu'elle se rembourse.</p>
+  <div class="scenarios">
+    <select id="preset-select" aria-label="Scénario enregistré"><option value="">Scénarios…</option></select>
+    <button id="preset-save" type="button" title="Enregistrer l'état courant comme scénario">Enregistrer</button>
+    <button id="preset-delete" type="button" class="ghost" title="Supprimer le scénario sélectionné">Supprimer</button>
+    <span class="sep"></span>
+    <button id="preset-export" type="button" class="ghost" title="Télécharger l'état courant en JSON">Exporter</button>
+    <button id="preset-import" type="button" class="ghost" title="Charger un fichier JSON exporté">Importer</button>
+    <input id="preset-file" type="file" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<main class="page">
+  <section class="card">
+    <div class="card-head">
+      <h2>État initial</h2>
+      <div class="chips">
+        <button id="reset" type="button" class="ghost small" title="Revenir à l'exemple">Réinitialiser</button>
+        <button id="add-loan" type="button">+ Ajouter un crédit</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table id="table-loans" class="editable"></table></div>
+  </section>
+
+  <section class="card objective">
+    <h2>Objectif</h2>
+    <div class="objective-row">
+      <div class="field"><label for="line-rate">Taux de la modulation</label><div class="unit"><input id="line-rate" type="number" step="0.05" min="0" value="5"><span>%</span></div></div>
+      <div class="field"><label for="line-target">Mensualité cible</label><div class="unit"><input id="line-target" type="number" step="10" min="0" value="1500"><span>€</span></div></div>
+    </div>
+    <div class="presets">
+      <div class="preset-group"><span class="eyebrow">Durée du plan</span><div id="chips-duration" class="chips"></div></div>
+      <div class="preset-group"><span class="eyebrow">Baisse de la mensualité max</span><div id="chips-reduction" class="chips"></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Points clés</h2><div id="status" class="status"></div></div>
+    <div id="keypoints" class="kpis"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Comparaison des taux</h2><span id="rates-delta" class="small muted"></span></div>
+    <div class="table-wrap"><table id="table-rates"></table></div>
+    <p class="small muted">Nominal : taux mensuel × 12, le taux affiché sur les offres de prêt. Actuariel : (1 + taux mensuel)<sup>12</sup> − 1, la convention du TAEG, ici hors frais et assurance. La situation actuelle et le plan lissé sont exprimés par leur taux de rendement interne.</p>
+  </section>
+
+  <section class="card">
+    <h2>Plan lissé</h2>
+    <div class="table-wrap"><table id="table-after"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Mensualité totale par mois</h2>
+      <div class="legend"><span class="bar" style="--c: var(--before)">Situation actuelle</span><span class="bar" style="--c: var(--after)">Plan lissé</span></div>
+    </div>
+    <div id="chart-payments" class="chart"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Encours de la modulation</h2>
+      <div class="legend"><span style="--c: var(--credit)">Capital restant dû de la modulation</span><span class="bar" style="--c: var(--after)">Tirage du mois</span></div>
+    </div>
+    <div id="chart-balance" class="chart"></div>
+    <div id="chart-draws" class="chart"></div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>Échéancier mois par mois</summary>
+      <div class="table-wrap"><table id="table-months"></table></div>
+    </details>
+  </section>
+</main>
+
+<dialog id="loan-dialog">
+  <form method="dialog" class="dlg">
+    <div class="dlg-head"><h2>Paramètres avancés</h2><span id="dlg-name" class="muted"></span></div>
+    <div id="dlg-fields" class="fields three"></div>
+    <div class="block">
+      <div class="block-head"><h3>Échéancier par paliers</h3><button id="dlg-add-seg" type="button">+ Palier</button></div>
+      <div id="dlg-segments" class="segments"></div>
+    </div>
+    <div class="block">
+      <h3>Après le dernier palier</h3>
+      <label class="radio"><input type="radio" name="closing" value="continue"> Poursuivre la dernière mensualité jusqu'au solde</label>
+      <label class="radio"><input type="radio" name="closing" value="balloon"> Échéance de clôture : le solde restant est remboursé en une fois</label>
+    </div>
+    <div id="dlg-preview" class="preview"></div>
+    <div class="dlg-actions">
+      <button id="dlg-simple" type="button" class="ghost">Revenir au mode simple</button>
+      <span class="spacer"></span>
+      <button id="dlg-cancel" type="button">Annuler</button>
+      <button id="dlg-apply" type="button" class="primary">Appliquer</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="preset-dialog">
+  <form method="dialog" class="dlg">
+    <h2>Enregistrer le scénario</h2>
+    <div class="field"><label for="preset-name">Nom</label><input id="preset-name" type="text" required maxlength="60" placeholder="Ex. Situation réelle"></div>
+    <p class="small muted">Un nom déjà utilisé remplace le scénario existant.</p>
+    <div class="dlg-actions">
+      <span class="spacer"></span>
+      <button id="preset-cancel" type="button">Annuler</button>
+      <button type="submit" class="primary">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="engine.js"></script>
+<script src="format.js"></script>
+<script src="charts.js"></script>
+<script src="render.js"></script>
+<script src="loan-dialog.js"></script>
+<script src="presets.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
